@@ -1,4 +1,6 @@
 .git
+.gitignore
 Dockerfile
 build.sh
+logs
 start.sh

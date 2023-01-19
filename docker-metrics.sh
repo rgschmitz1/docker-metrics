@@ -9,11 +9,17 @@ usage() {
 	exit $1
 }
 
-WORKFLOW="$1"
-if [ -z "$WORKFLOW" ]; then
-	usage 1
-fi
+[ -n "$1" ] && WORKFLOW="$1" || usage 1
 
-LOG="/data/${WORKFLOW}-metrics.log"
+LOG="/data/logs"
+mkdir -p $LOG || exit 1
+LOG="$LOG/$(date '+%Y%m%d-%H%M%S')${WORKFLOW}-metrics.log"
 
-echo {"workflow": \"${WORKFLOW}\", "data": [ > $LOG
+# Generate log
+echo '{"workflow": "'${WORKFLOW}'", "data": [' > $LOG
+while true; do
+	echo '{"datetime": "'$(date '+%Y%m%d-%H%M%S')'", "stats": [' >> $LOG
+	docker stats --no-stream --format "{{json . }}" >> $LOG
+	echo ']}' >> $LOG
+done
+echo ']}' >> $LOG
