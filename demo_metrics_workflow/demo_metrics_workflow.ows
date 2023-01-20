@@ -1,0 +1,13 @@
+<?xml version="1.0" ?><scheme description="" title="demo-metrics-workflow" version="2.0">
+	<nodes>
+		<node id="0" name="docker_metrics" position="(150, 150)" project_name="demo-metrics-workflow" qualified_name="demo_metrics_workflow.OWdocker_metrics.OWdocker_metrics" title="Start metrics" version=""/>
+		<node id="1" name="docker_metrics" position="(300, 150)" project_name="demo-metrics-workflow" qualified_name="demo_metrics_workflow.OWdocker_metrics.OWdocker_metrics" title="Stop metrics" version=""/>
+	</nodes>
+	<links/>
+	<annotations/>
+	<thumbnail/>
+	<node_properties>
+		<properties format="literal" node_id="0">{'controlAreaVisible': True, 'exportGraphics': False, 'inputConnectionsStore': {}, 'iterate': False, 'iterateSettings': {'iterableAttrs': []}, 'nWorkers': 1, 'optionsChecked': {}, 'runMode': 0, 'runTriggers': [], 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x02=\x00\x00\x00\xd6\x00\x00\x05)\x00\x00\x01\xd8\x00\x00\x02=\x00\x00\x00\xd6\x00\x00\x05)\x00\x00\x01\xd8\x00\x00\x00\x00\x00\x00\x00\x00\x05V', 'stop_metrics': False, 'triggerReady': {}, 'useGpu': False, 'useScheduler': False, 'workflow': 'foo', '__version__': 1}</properties>
+		<properties format="literal" node_id="1">{'controlAreaVisible': True, 'exportGraphics': False, 'inputConnectionsStore': {}, 'iterate': False, 'iterateSettings': {'iterableAttrs': []}, 'nWorkers': 1, 'optionsChecked': {}, 'runMode': 0, 'runTriggers': [], 'savedWidgetGeometry': b'\x01\xd9\xd0\xcb\x00\x02\x00\x00\x00\x00\x02=\x00\x00\x00\xd6\x00\x00\x05)\x00\x00\x01\xf3\x00\x00\x02=\x00\x00\x00\xee\x00\x00\x05)\x00\x00\x01\xf0\x00\x00\x00\x00\x00\x00\x00\x00\x05V', 'stop_metrics': True, 'triggerReady': {}, 'useGpu': False, 'useScheduler': False, 'workflow': 'bar', '__version__': 1}</properties>
+	</node_properties>
+</scheme>
