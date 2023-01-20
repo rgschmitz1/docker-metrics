@@ -16,10 +16,11 @@ mkdir -p $LOG || exit 1
 LOG="$LOG/$(date '+%Y%m%d-%H%M%S')${WORKFLOW}-metrics.log"
 
 # Generate log
-echo '{"workflow": "'${WORKFLOW}'", "data": [' > $LOG
+echo '{"workflow": "'${WORKFLOW}'", "data": [' | tee $LOG
 while true; do
-	echo '{"datetime": "'$(date '+%Y%m%d-%H%M%S')'", "stats": [' >> $LOG
-	docker stats --no-stream --format "{{json . }}" >> $LOG
-	echo ']}' >> $LOG
+	echo '{"datetime": "'$(date +%s)'", "stats": [' | tee -a $LOG
+	docker stats --no-stream --format "{{json . }}" | tee -a $LOG
+	echo ']},' | tee -a $LOG
 done
-echo ']}' >> $LOG
+sed '$s/,//' $LOG
+echo ']}' | tee -a $LOG

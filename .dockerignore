@@ -1,6 +1,8 @@
 .git
 .gitignore
 Dockerfile
+LICENSE
+README.md
 build.sh
 logs
 start.sh
