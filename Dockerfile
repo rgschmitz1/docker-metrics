@@ -1,6 +1,3 @@
-FROM alpine:latest AS builder
-RUN apk add --update docker
-
-FROM alpine:latest
-COPY --from=builder /usr/bin/docker /usr/bin/docker
+FROM alpine:3.17.1
+RUN apk add --no-cache docker-cli jq
 COPY docker-metrics.sh /usr/local/bin
