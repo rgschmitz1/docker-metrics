@@ -10,13 +10,17 @@ main() {
 		exit 0
 	fi
 
-	# Set workflow name
-	[ -n "$1" ] && WORKFLOW="$1" || usage 1
+	# Workflow name
+	WORKFLOW="$1"
+	[ -n "$WORKFLOW" ] || usage 1
+
+	# Start workflow
+	START_TIME=$(date +%s)
 
 	# Log filename
 	LOG="/data/logs"
 	mkdir -p $LOG || exit 1
-	LOG="$LOG/$(date '+%Y%m%d-%H%M%S')${WORKFLOW}-metrics.log"
+	LOG="$LOG/$(date -d @$START_TIME +%Y%m%d-%H%M%S)-${WORKFLOW}-metrics.log"
 
 	# Memory stats
 	TOTAL_MEM_USAGE=0
@@ -26,10 +30,10 @@ main() {
 	TOTAL_CPU_USAGE=0
 	MAX_CPU_USAGE=0
 
-	# Generate log
-	generate
+	# Generate JSON log
+	generate_log
 
-	# Clean/minify log and remove trigger file
+	# Clean/minify log and remove extraneous files
 	cleanup
 }
 
@@ -63,29 +67,46 @@ usage() {
 }
 
 cleanup() {
+	# Capture total runtime
+	END_TIME=$(date +%s)
+	RUNTIME=$(echo "$END_TIME - $START_TIME" | bc)
+	RUNTIME=$(date -u -d @${RUNTIME} +"%-Hh %-Mm %-Ss")
+
+	# Remove temporary files
 	rm -f $TRIGGER $TEMP_JSON
+
+	# Verify JSON log exists or exit with error status
+	[ ! -f "$LOG" ] && exit 1
+
+	# Cleanup and append extra data to JSON log
 	sed -i '$s/,$//' $LOG
-	MAX_MEM_USAGE=$(numfmt -to=iec $MAX_MEM_USAGE)
+
+	MAX_MEM_USAGE=$(numfmt --to=iec $MAX_MEM_USAGE)
 	AVG_MEM_USAGE=$(echo "$TOTAL_MEM_USAGE / $ITERATIONS" | bc)
-	AVG_MEM_USAGE=$(numfmt -to=iec $AVG_MEM_USAGE)
+	AVG_MEM_USAGE=$(numfmt --to=iec $AVG_MEM_USAGE)
 	AVG_CPU_USAGE=$(echo "scale=2;$TOTAL_MEM_USAGE / $ITERATIONS" | bc)
 	cat <<-_EOF >> $LOG
 	],
 	"max_mem_usage": "$MAX_MEM_USAGE",
 	"avg_mem_usage": "$AVG_MEM_USAGE",
 	"max_cpu_usage": "${MAX_CPU_USAGE}%",
-	"avg_cpu_usage": "${AVG_CPU_USAGE}%"
+	"avg_cpu_usage": "${AVG_CPU_USAGE}%",
+	"runtime": "$RUNTIME"
 	}
 	_EOF
+
+	# Compact JSON log
 	local tmp=$(mktemp)
 	jq -cM . $LOG > $tmp || exit $?
 	mv $tmp $LOG
 }
 
 generate_log() {
-	echo '{"workflow": "'${WORKFLOW}'", "data": [' > $LOG
 	TEMP_JSON=$(mktemp)
-	while [ ! -f $TRIGGER ]; do
+	echo '{"workflow": "'${WORKFLOW}'", "data": [' > $LOG
+
+	# While trigger file does not exist, continously collect docker stats
+	while [ ! -f "$TRIGGER" ]; do
 		echo '{"datetime": "'$(date +%s)'", "stats": [' >> $LOG
 		docker stats --no-stream --format "{{json . }}" > $TEMP_JSON
 		sed 's/$/,/; $s/,$//' $TEMP_JSON | tee -a $LOG
