@@ -70,15 +70,11 @@ usage() {
 format_runtime() {
 	END_TIME=$(date '+%s')
 	RUNTIME=$(echo "$END_TIME - $START_TIME" | bc)
-	local d="$(echo "$RUNTIME / 86400" | bc)d"
-	local h="$(echo "$RUNTIME % 86400 / 3600" | bc)h"
-	local m="$(echo "$RUNTIME % 3600 / 60" | bc)m"
-	local s="$(echo "$RUNTIME % 60" | bc)s"
-	unset RUNTIME
-	for t in $d $h $m $s; do
-		RUNTIME+="$t "
-	done
-	RUNTIME=$(echo "$RUNTIME" | xargs)
+	local d=$(echo "$RUNTIME / 86400" | bc)
+	local h=$(echo "$RUNTIME % 86400 / 3600" | bc)
+	local m=$(echo "$RUNTIME % 3600 / 60" | bc)
+	local s=$(echo "$RUNTIME % 60" | bc)
+	RUNTIME="${d} day, ${h} hour, ${m} min, ${s} sec"
 }
 
 cleanup() {
