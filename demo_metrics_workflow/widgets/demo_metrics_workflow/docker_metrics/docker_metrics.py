@@ -13,7 +13,7 @@ from PyQt5 import QtWidgets, QtGui
 
 class OWdocker_metrics(OWBwBWidget):
     name = "docker_metrics"
-    description = "None"
+    description = "Collect docker metrics"
     priority = 1
     icon = getIconName(__file__,"bash.png")
     want_main_area = False
@@ -27,7 +27,7 @@ class OWdocker_metrics(OWBwBWidget):
     triggerReady=pset({})
     inputConnectionsStore=pset({})
     optionsChecked=pset({})
-    workflow=pset(None)
+    workflow=pset("workflow")
     stop_metrics=pset(False)
     def __init__(self):
         super().__init__(self.docker_image_name, self.docker_image_tag)
