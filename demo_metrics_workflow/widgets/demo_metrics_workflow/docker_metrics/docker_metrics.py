@@ -19,7 +19,7 @@ class OWdocker_metrics(OWBwBWidget):
     want_main_area = False
     docker_image_name = "biodepot/docker-metrics"
     docker_image_tag = "0.1__alpine-3.17.1"
-    inputs = [("workflow",str,"handleInputsworkflow"),("stop_metrics",str,"handleInputsstop_metrics")]
+    inputs = [("workflow",str,"handleInputsworkflow"),("trigger",str,"handleInputstrigger")]
     pset=functools.partial(settings.Setting,schema_only=True)
     runMode=pset(0)
     exportGraphics=pset(False)
@@ -29,6 +29,7 @@ class OWdocker_metrics(OWBwBWidget):
     optionsChecked=pset({})
     workflow=pset("workflow")
     stop_metrics=pset(False)
+    log_dir=pset("/data/logs")
     def __init__(self):
         super().__init__(self.docker_image_name, self.docker_image_tag)
         with open(getJsonName(__file__,"docker_metrics")) as f:
@@ -42,8 +43,8 @@ class OWdocker_metrics(OWBwBWidget):
             self.handleInputs("workflow", value, args[0][0], test=args[0][3])
         else:
             self.handleInputs("inputFile", value, None, False)
-    def handleInputsstop_metrics(self, value, *args):
+    def handleInputstrigger(self, value, *args):
         if args and len(args) > 0: 
-            self.handleInputs("stop_metrics", value, args[0][0], test=args[0][3])
+            self.handleInputs("trigger", value, args[0][0], test=args[0][3])
         else:
             self.handleInputs("inputFile", value, None, False)
