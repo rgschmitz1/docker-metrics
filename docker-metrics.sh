@@ -15,8 +15,8 @@ trap cleanup 2
 #   $1 - Workflow name
 #
 # Optional environment variables:
-#   LOG_DIR     - directory to store metrics, defaults to '/data/logs'
-#   HALT_SIGNAL - creates a file to terminate metrics collection
+#   LOG_DIR      - directory to store metrics, defaults to '/data/logs'
+#   STOP_METRICS - creates a file to terminate metrics collection
 #
 main() {
 	# Check if workflow name is set, otherwise print usage and exit
@@ -210,6 +210,7 @@ generate_log() {
 		echo '"time": '$(date '+%s')'},' | tee -a $LOG
 		evaluate_stats
 	done
+	return 0
 }
 
 main "$*"
