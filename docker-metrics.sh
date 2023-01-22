@@ -130,16 +130,29 @@ cleanup() {
 
 	MEM_MAX_USAGE=$(numfmt --to=iec-i --format='%.2f' $MEM_MAX_USAGE)
 
+	# Parse CPU and memory info from sysfs
+	local model_name=$(awk -F: '/model name/ {print $NF;exit}' /proc/cpuinfo | xargs)
+	local processors=$(grep -c "processor" /proc/cpuinfo)
+	local mem_total=$(awk -F: '/MemTotal/ {print $NF}' /proc/meminfo | sed 's/ //g; s/B$//' | tr '[:lower:]' '[:upper:]')
+	local mem_total=$(numfmt --from=iec --to=iec-i $mem_total)
+
 	# Append extra data to JSON log
 	tee -a $LOG <<-_EOF
 	],
-	"stats": [
+	"stats": {
 	  "cpu_avg_usage": "$CPU_AVG_USAGE%",
-	  "cpu_max_usage": "$CPU_MAX_USAGE%"
-	  "mem_avg_usage": "$MEM_AVG_USAGE",
-	  "mem_max_usage": "$MEM_MAX_USAGE",
+	  "cpu_max_usage": "$CPU_MAX_USAGE%",
+	  "mem_avg_usage": "${MEM_AVG_USAGE}B",
+	  "mem_max_usage": "${MEM_MAX_USAGE}B",
 	  "runtime": "$RUNTIME"
-	],
+	},
+	"cpuinfo": {
+	  "model_name": "$(awk -F: '/model name/ {print $NF;exit}' /proc/cpuinfo | xargs)",
+	  "processors": $(grep -c "processor" /proc/cpuinfo)
+	},
+	"meminfo": {
+	  "mem_total": "${mem_total}B"
+	},
 	"workflow": "$WORKFLOW"
 	}
 	_EOF
@@ -158,7 +171,7 @@ evaluate_stats() {
 
 	# Memory stats
 	local temp_mem_sum=0
-	for mem in $(jq -r '.MemUsage | split(" ")[0]' $TEMP_JSON | tr -d 'B'); do
+	for mem in $(jq -r '.mem_usage | split(" ")[0]' $TEMP_JSON | tr -d 'B'); do
 		local mem_in_bytes=$(numfmt --from=auto $mem)
 		temp_mem_sum=$(echo "$mem_in_bytes + $temp_mem_sum" | bc)
 	done
@@ -167,7 +180,7 @@ evaluate_stats() {
 
 	# CPU stats
 	local temp_cpu_sum=0
-	for cpu in $(jq -r '.CPUPerc' $TEMP_JSON | tr -d '%'); do
+	for cpu in $(jq -r '.cpu_perc' $TEMP_JSON | tr -d '%'); do
 		temp_cpu_sum=$(echo "$cpu + $temp_cpu_sum" | bc)
 	done
 	CPU_TOTAL_USAGE=$(echo "$temp_cpu_sum + $CPU_TOTAL_USAGE" | bc)
@@ -179,13 +192,13 @@ evaluate_stats() {
 # Write to JSON log file
 #
 generate_log() {
+	printf "Generating log, $LOG\n---\n"
 	echo '{"data": [' | tee $LOG
 
 	# While trigger file does not exist, continously collect docker stats
+	local json='{"block_io": "{{.BlockIO}}", "cpu_perc": "{{.CPUPerc}}", "mem_usage": "{{.MemUsage}}", "name": "{{.Name}}", "net_io": "{{.NetIO}}", "pids": {{.PIDs}}}'
 	while [ ! -f "$HALT_SIGNAL" ]; do
-		docker stats --no-stream --format \
-			'{"BlockIO": "{{.BlockIO}}", "CPUPerc": "{{.CPUPerc}}", "MemUsage": "{{.MemUsage}}", "Name": "{{.Name}}", "NetIO": "{{.NetIO}}", "PIDs": "{{.PIDs}}"}' \
-			> $TEMP_JSON
+		docker stats --no-stream --format "$json" > $TEMP_JSON
 		if [ ! -s "$TEMP_JSON" ]; then
 			echo "$TEMP_JSON is empty, something went wrong!"
 			return 1
@@ -194,7 +207,7 @@ generate_log() {
 		# add a comma to the end of every line,
 		# replace the comma at the end of the last line of the file with a '],'
 		sed '1s/^/{"metrics": [/; s/$/,/; $s/,$/],/' $TEMP_JSON | tee -a $LOG
-		echo '"time": "'$(date '+%s')'"},' | tee -a $LOG
+		echo '"time": '$(date '+%s')'},' | tee -a $LOG
 		evaluate_stats
 	done
 }
