@@ -5,17 +5,15 @@ Creates metrics logs from workflows in docker. Logs are JSON formatted for easy 
 ```
 Usage: docker-metrics.sh <workflow>
 
-Collects metrics from 'docker stats' until '$HALT_SIGNAL' is detected
+Collects metrics from 'docker stats' until '<LOG_DIR>/halt-<workflow>-metrics' is detected
 
 Required positional argument:
-  workflow\t- name of the workflow (used in log filename)
+  workflow     - name of the workflow (used in log filename)
 
 Optional environment variables:
-  STOP_METRICS - Generate halt signal file then exit
-  HALT_SIGNAL - Temporary file used to halt metrics collection
-                (defaults to '/data/stop_metrics')
-  LOG_DIR - Directory to store JSON logs
+  STOP_METRICS - When not empty, generate halt signal file then exit
+  LOG_DIR      - Directory to store JSON logs, default is '/data/logs'
 ```
 
 # Output
-`/data/logs/<YYYYMMDD-HHMMSS>-<workflow>-metrics.log`
+`<LOG_DIR>/<YYYYMMDD-HHMMSS>-<workflow>-metrics.log`

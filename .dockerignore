@@ -1,5 +1,4 @@
 # Ignore everything
 *
-
 # Allow the following files and directories
 !docker-metrics.sh
