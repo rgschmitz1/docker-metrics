@@ -133,8 +133,8 @@ cleanup() {
 	# Parse CPU and memory info from sysfs
 	local model_name=$(awk -F: '/model name/ {print $NF;exit}' /proc/cpuinfo | xargs)
 	local processors=$(grep -c "processor" /proc/cpuinfo)
-	local mem_total=$(awk -F: '/MemTotal/ {print $NF}' /proc/meminfo | sed 's/ //g; s/B$//' | tr '[:lower:]' '[:upper:]')
-	local mem_total=$(numfmt --from=iec --to=iec-i $mem_total)
+	local mem_total=$(awk -F: '/MemTotal/ {print $NF}' /proc/meminfo | sed 's/ //g; s/kB$/Ki/')
+	local mem_total=$(numfmt --from=auto --to=iec-i $mem_total)
 
 	# Append extra data to JSON log
 	tee -a $LOG <<-_EOF
@@ -147,8 +147,8 @@ cleanup() {
 	  "runtime": "$RUNTIME"
 	},
 	"cpuinfo": {
-	  "model_name": "$(awk -F: '/model name/ {print $NF;exit}' /proc/cpuinfo | xargs)",
-	  "processors": $(grep -c "processor" /proc/cpuinfo)
+	  "model_name": "$model_name",
+	  "processors": $processors
 	},
 	"meminfo": {
 	  "mem_total": "${mem_total}B"
